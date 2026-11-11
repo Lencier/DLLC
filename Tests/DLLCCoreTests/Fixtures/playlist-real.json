@@ -1,0 +1,55 @@
+{
+  "id": "PL4lCao7KL_QFodcLWhDpGCYnngnHtQ-Xf",
+  "title": "youtube-dl empty playlist",
+  "availability": "unlisted",
+  "channel_follower_count": null,
+  "thumbnails": [
+    {
+      "url": "https://i.ytimg.com/img/no_thumbnail.jpg",
+      "height": 90,
+      "width": 120,
+      "id": "0",
+      "resolution": "120x90"
+    },
+    {
+      "url": "https://i.ytimg.com/img/no_thumbnail.jpg",
+      "height": 180,
+      "width": 320,
+      "id": "1",
+      "resolution": "320x180"
+    },
+    {
+      "url": "https://i.ytimg.com/img/no_thumbnail.jpg",
+      "height": 360,
+      "width": 480,
+      "id": "2",
+      "resolution": "480x360"
+    }
+  ],
+  "modified_date": "20230921",
+  "view_count": 0,
+  "playlist_count": 0,
+  "channel": "Sergey M.",
+  "channel_id": "UCmlqkdCBesrv2Lak1mF_MxA",
+  "uploader_id": "@sergeym.6173",
+  "uploader": "Sergey M.",
+  "channel_url": "https://www.youtube.com/channel/UCmlqkdCBesrv2Lak1mF_MxA",
+  "uploader_url": "https://www.youtube.com/@sergeym.6173",
+  "_type": "playlist",
+  "entries": [],
+  "extractor_key": "YoutubeTab",
+  "extractor": "youtube:tab",
+  "webpage_url": "https://www.youtube.com/playlist?redacted",
+  "original_url": "https://www.youtube.com/playlist?redacted",
+  "webpage_url_basename": "playlist",
+  "webpage_url_domain": "youtube.com",
+  "release_year": null,
+  "epoch": 1793743936,
+  "__files_to_move": {},
+  "_version": {
+    "version": "2026.10.26",
+    "current_git_head": null,
+    "release_git_head": "c91f8de0bfb3577894abad716eaaa01659e6bd14",
+    "repository": "yt-dlp/yt-dlp"
+  }
+}

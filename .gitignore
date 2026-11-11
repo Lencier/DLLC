@@ -1,0 +1,13 @@
+.build/
+Vendor/
+dist/
+*.xcodeproj/
+.DS_Store
+.build*/
+.swiftpm/
+*.xcuserstate
+.DS_Store
+.superpowers/
+
+# Internal AI working notes (kept local, not published)
+docs/codex-astra-*.md

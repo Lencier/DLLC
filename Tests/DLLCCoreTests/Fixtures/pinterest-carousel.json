@@ -1,0 +1,11 @@
+{"resource_response":{"data":{"id":"111","title":"","grid_title":"","description":"  Moodboard ideas  ",
+"closeup_attribution":{"full_name":"Sample Creator"},
+"images":{"736x":{"url":"https://i.pinimg.com/736x/aa/bb/cc/cover.jpg","width":736},"orig":{"url":"https://i.pinimg.com/originals/aa/bb/cc/cover.jpg","width":720,"height":960}},
+"videos":null,
+"carousel_data":{"carousel_slots":[
+ {"images":{"736x":{"url":"https://i.pinimg.com/736x/11/22/33/one.jpg","width":736,"height":981}},
+  "videos":{"video_list":{"V_720P":{"url":"https://v1.pinimg.com/videos/iht/expMp4/11/22/33/one_720w.mp4","width":720,"height":960},
+                          "V_HLSV4":{"url":"https://v1.pinimg.com/videos/iht/hls/11/22/33/one.m3u8","width":720,"height":960}}}},
+ {"images":{"736x":{"url":"https://i.pinimg.com/736x/44/55/66/two.jpg","width":736,"height":981}},"videos":null},
+ {"images":{"736x":{"url":"https://evil.example.com/736x/x.jpg"}},"videos":{"video_list":{"V_720P":{"url":"http://v1.pinimg.com/insecure.mp4"}}}}
+]}}}}

@@ -1,0 +1,20 @@
+[
+  "[youtube] Extracting URL: https://www.youtube.com/watch?v=jNQXAC9IVRw",
+  "[youtube] jNQXAC9IVRw: Downloading webpage",
+  "[youtube] jNQXAC9IVRw: Downloading tv samsung player API JSON",
+  "[youtube] jNQXAC9IVRw: Downloading visionos player API JSON",
+  "[youtube] jNQXAC9IVRw: Downloading player 4a1e575f-main",
+  "[youtube] [jsc:deno] Solving JS challenges using deno",
+  "[youtube] jNQXAC9IVRw: Downloading m3u8 information",
+  "[info] jNQXAC9IVRw: Downloading 1 format(s): 160+251",
+  "[download] Destination: /tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].f160.mp4",
+  "DLLC_PROGRESS {\"status\": \"downloading\", \"downloaded_bytes\": 1024, \"total_bytes\": 195278, \"tmpfilename\": \"/tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].f160.mp4.part\", \"filename\": \"/tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].f160.mp4\", \"eta\": 0, \"speed\": 603734.5088557773, \"elapsed\": 0.07630014419555664, \"ctx_id\": null, \"_eta_str\": \"00:00\", \"_speed_str\": \" 589.58KiB/s\", \"_percent\": 0.5243806265938815, \"_percent_str\": \"  0.5%\", \"_total_bytes_str\": \" 190.70KiB\", \"_total_bytes_estimate_str\": \"       N/A\", \"_downloaded_bytes_str\": \"   1.00KiB\", \"_elapsed_str\": \"00:00:00\", \"_default_template\": \"  0.5% of  190.70KiB at  589.58KiB/s ETA 00:00\"}",
+  "DLLC_PROGRESS {\"downloaded_bytes\": 195278, \"total_bytes\": 195278, \"filename\": \"/tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].f160.mp4\", \"status\": \"finished\", \"elapsed\": 0.09888792037963867, \"ctx_id\": null, \"speed\": 1974740.688754623, \"_speed_str\": \"1.88MiB/s\", \"_total_bytes_str\": \" 190.70KiB\", \"_elapsed_str\": \"00:00:00\", \"_percent\": 100.0, \"_percent_str\": \"100.0%\", \"_default_template\": \"100% of  190.70KiB in 00:00:00 at 1.88MiB/s\"}",
+  "[download] Destination: /tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].f251.webm",
+  "DLLC_PROGRESS {\"status\": \"downloading\", \"downloaded_bytes\": 1024, \"total_bytes\": 252182, \"tmpfilename\": \"/tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].f251.webm.part\", \"filename\": \"/tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].f251.webm\", \"eta\": null, \"speed\": null, \"elapsed\": 0.02193307876586914, \"ctx_id\": null, \"_eta_str\": \"Unknown\", \"_speed_str\": \" Unknown B/s\", \"_percent\": 0.40605594372318404, \"_percent_str\": \"  0.4%\", \"_total_bytes_str\": \" 246.27KiB\", \"_total_bytes_estimate_str\": \"       N/A\", \"_downloaded_bytes_str\": \"   1.00KiB\", \"_elapsed_str\": \"00:00:00\", \"_default_template\": \"  0.4% of  246.27KiB at  Unknown B/s ETA Unknown\"}",
+  "DLLC_PROGRESS {\"downloaded_bytes\": 252182, \"total_bytes\": 252182, \"filename\": \"/tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].f251.webm\", \"status\": \"finished\", \"elapsed\": 0.028290987014770508, \"ctx_id\": null, \"speed\": 8913863.622656139, \"_speed_str\": \"8.50MiB/s\", \"_total_bytes_str\": \" 246.27KiB\", \"_elapsed_str\": \"00:00:00\", \"_percent\": 100.0, \"_percent_str\": \"100.0%\", \"_default_template\": \"100% of  246.27KiB in 00:00:00 at 8.50MiB/s\"}",
+  "[Merger] Merging formats into \"/tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].mkv\"",
+  "Deleting original file /tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].f160.mp4 (pass -k to keep)",
+  "Deleting original file /tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].f251.webm (pass -k to keep)",
+  "DLLC_FILE \"/tmp/dllc-b/download-visible/Me at the zoo [jNQXAC9IVRw].mkv\""
+]
