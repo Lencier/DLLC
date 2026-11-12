@@ -16,7 +16,8 @@ public enum YouTubeClients {
     public static func shouldSwitch(stderr: String) -> Bool {
         let s = stderr.lowercased()
         return ["sabr", "the page needs to be reloaded", "http error 403", "nsig", "only images are available",
-                "requested format is not available", "requested format not available", "conversion failed"]
+                "requested format is not available", "requested format not available", "conversion failed",
+                "confirm you’re not a bot", "confirm you're not a bot", "po token"]
             .contains { s.contains($0) }
     }
 

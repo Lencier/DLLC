@@ -172,7 +172,7 @@ Without that key no update can be published that existing copies will accept.
 
 ## Version
 
-DLLC 1.3.25 — developed by Lencier, from an idea by Kannnap. The version lives in `VERSION` and is read by `scripts/build-app.sh`.
+DLLC 1.3.26 — developed by Lencier, from an idea by Kannnap. The version lives in `VERSION` and is read by `scripts/build-app.sh`.
 
 - **1**.x.x: changes rarely (a whole new generation of the app).
 - x.**3**.x: big updates or new features.

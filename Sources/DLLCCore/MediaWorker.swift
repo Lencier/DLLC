@@ -27,15 +27,7 @@ public final class MediaWorker: JobWorker, @unchecked Sendable {
     // MARK: Analysis
 
     public func analyze(url: String, playlistItems: [Int]?, cookies: CookieSource) async throws -> MediaInfo {
-        if PinterestPins.isPinterest(url) {
-            // yt-dlp handles video pins; images, carousels and story pages are read directly.
-            do { return try await analyzeOnce(url: url, playlistItems: playlistItems, cookies: cookies, client: nil) }
-            catch is CancellationError { throw CancellationError() }
-            catch {
-                if let info = try? await PinterestPins.fetch(url: url) { return info }
-                throw error
-            }
-        }
+        if PinterestPins.isPinterest(url) { return try await analyzePin(url: url, playlistItems: playlistItems, cookies: cookies) }
         guard YouTubeClients.isYouTube(url) else {
             return try await analyzeOnce(url: url, playlistItems: playlistItems, cookies: cookies, client: nil)
         }
@@ -57,6 +49,31 @@ public final class MediaWorker: JobWorker, @unchecked Sendable {
                 client = next
             }
         }
+    }
+
+    /// yt-dlp handles video pins; images, carousels and story pages are read directly. A pin without a video
+    /// of its own that links elsewhere (Instagram, YouTube, TikTok…) is followed, a few hops at most, until
+    /// a video turns up; if none does, the pin's own images are saved.
+    func analyzePin(url: String, playlistItems: [Int]?, cookies: CookieSource) async throws -> MediaInfo {
+        var current = url, seen: Set<String> = [url]
+        var images: MediaInfo?, lastError: Error?
+        for _ in 0..<4 {
+            do {
+                var info = PinterestPins.isPinterest(current)
+                    ? try await analyzeOnce(url: current, playlistItems: playlistItems, cookies: cookies, client: nil)
+                    : try await analyze(url: current, playlistItems: playlistItems, cookies: cookies)
+                if current != url { info.resolvedURL = info.resolvedURL ?? current }
+                return info
+            } catch is CancellationError { throw CancellationError() }
+            catch { lastError = error }
+            guard PinterestPins.isPinterest(current), let pin = try? await PinterestPins.fetch(url: current) else { break }
+            if pin.directItems?.contains(where: \.isVideo) == true { return pin }
+            if images == nil, pin.hasDirectItems { images = pin }
+            guard let next = pin.linkedURL, seen.insert(next).inserted else { break }
+            current = next
+        }
+        if let images { return images }
+        throw lastError ?? JobError(category: .unsupportedURL, message: "No video was found at this link.", suggestion: nil, isRecoverable: false)
     }
 
     func analyzeOnce(url: String, playlistItems: [Int]?, cookies: CookieSource, client: String?) async throws -> MediaInfo {
@@ -155,7 +172,7 @@ public final class MediaWorker: JobWorker, @unchecked Sendable {
             throw JobError(category: .missingAudio, message: "This video has no sound, so there’s no audio to save.",
                            suggestion: "Choose Video instead.", isRecoverable: false)
         }
-        guard YouTubeClients.isYouTube(job.url) else { return try await downloadOnce(job: job, workDir: workDir, client: nil, events: events) }
+        guard YouTubeClients.isYouTube(job.info?.resolvedURL ?? job.url) else { return try await downloadOnce(job: job, workDir: workDir, client: nil, events: events) }
         var client = job.info?.youtubeClient
         while true {
             do {
@@ -171,7 +188,7 @@ public final class MediaWorker: JobWorker, @unchecked Sendable {
     func downloadOnce(job: Job, workDir: URL, client: String?, events: @escaping @Sendable (JobEvent) -> Void) async throws -> [URL] {
         events(.phase(.downloading))
         events(.progress(JobProgress(stage: "Connecting")))
-        let args = YTDLPCommand.downloadArguments(url: job.url, options: job.options, workDir: workDir, tools: tools,
+        let args = YTDLPCommand.downloadArguments(url: job.info?.resolvedURL ?? job.url, options: job.options, workDir: workDir, tools: tools,
                                                   cookies: job.cookies, cookiesDirectory: paths.cookiesDirectory,
                                                   youtubeClient: client)
         let tracker = DownloadTracker(info: job.info, kind: job.options.kind)

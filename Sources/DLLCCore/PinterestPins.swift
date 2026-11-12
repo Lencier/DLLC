@@ -40,7 +40,15 @@ public enum PinterestPins {
         return h == "pinimg.com" || h.hasSuffix(".pinimg.com")
     }
 
-    struct Parsed { var title: String; var creator: String?; var thumbnail: String?; var items: [DirectItem] }
+    struct Parsed { var title: String; var creator: String?; var thumbnail: String?; var items: [DirectItem]; var link: String? = nil }
+
+    /// A pin's outbound link worth following: http(s), and not back to Pinterest's media servers.
+    static func outboundLink(_ any: Any?) -> String? {
+        guard let s = (any as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), let u = URL(string: s),
+              u.scheme == "https" || u.scheme == "http", let h = u.host?.lowercased(), !h.isEmpty,
+              !(h == "pinimg.com" || h.hasSuffix(".pinimg.com")) else { return nil }
+        return s
+    }
 
     /// Reads the PinResource JSON. Pure, so it is tested with captured responses.
     static func parse(_ data: Data, id: String) throws -> Parsed {
@@ -49,8 +57,11 @@ public enum PinterestPins {
             throw URLError(.cannotParseResponse)
         }
         var items: [DirectItem] = []
+        var link = outboundLink(pin["link"])
         if let slots = (pin["carousel_data"] as? [String: Any])?["carousel_slots"] as? [[String: Any]] {
-            for slot in slots { if let item = video(slot["videos"]) ?? image(slot["images"]) { items.append(item) } }
+            for slot in slots {
+                link = link ?? outboundLink(slot["link"])
+                if let item = video(slot["videos"]) ?? image(slot["images"]) { items.append(item) } }
         } else if let pages = (pin["story_pin_data"] as? [String: Any])?["pages"] as? [[String: Any]] {
             for page in pages {
                 for block in page["blocks"] as? [[String: Any]] ?? [] {
@@ -66,7 +77,7 @@ public enum PinterestPins {
         let title = text.map { $0.count > 90 ? String($0.prefix(90)) + "…" : $0 } ?? "Pinterest pin \(id)"
         let creator = ((pin["closeup_attribution"] ?? pin["pinner"]) as? [String: Any])?["full_name"] as? String
         let thumb = ((pin["images"] as? [String: Any])?["736x"] as? [String: Any])?["url"] as? String
-        return Parsed(title: title, creator: creator, thumbnail: thumb.flatMap { isMediaURL($0) ? $0 : nil }, items: items)
+        return Parsed(title: title, creator: creator, thumbnail: thumb.flatMap { isMediaURL($0) ? $0 : nil }, items: items, link: link)
     }
 
     /// The MP4 of a `videos` object (HLS copies are skipped), largest first.
@@ -97,7 +108,7 @@ public enum PinterestPins {
                              : DirectItem(url: original, fallbackURL: u, isVideo: false)
     }
 
-    /// Looks the pin up on Pinterest. Nil when the link isn't a pin or the pin offers no files.
+    /// Looks the pin up on Pinterest. Nil when the link isn't a pin, or the pin offers no files and links nowhere.
     public static func fetch(url: String, session: URLSession = .shared) async throws -> MediaInfo? {
         guard var link = URL(string: url.trimmingCharacters(in: .whitespaces)), link.scheme?.hasPrefix("http") == true else { return nil }
         if link.host?.lowercased() == "pin.it" {
@@ -116,12 +127,13 @@ public enum PinterestPins {
         let (data, response) = try await session.data(for: req)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
         let p = try parse(data, id: id)
-        guard !p.items.isEmpty else { return nil }
+        guard !p.items.isEmpty || p.link != nil else { return nil }
         var info = MediaInfo(id: id, title: p.title, creator: p.creator, platform: .pinterest, extractor: "PinterestDirect",
                              webpageURL: "https://www.pinterest.com/pin/\(id)/", thumbnailURL: p.thumbnail ?? p.items.first { !$0.isVideo }?.url,
                              duration: nil, isLive: false, videoVariants: [], audioVariants: [], qualityOptions: [],
                              hasAudio: false, hasVideo: false, entries: [], analyzedAt: Date())
-        info.directItems = p.items
+        info.directItems = p.items.isEmpty ? nil : p.items
+        info.linkedURL = p.link
         return info
     }
 

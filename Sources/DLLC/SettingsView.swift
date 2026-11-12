@@ -5,11 +5,33 @@ struct SettingsView: View {
     var body: some View {
         TabView {
             GeneralSettings().tabItem { Label("General", systemImage: "gearshape") }
-            TransferSettings().tabItem { Label("Transfers", systemImage: "arrow.down.circle") }
-            PrivacySettings().tabItem { Label("Privacy & Updates", systemImage: "lock.shield") }
+            TransferSettings().tabItem { Label("Downloads", systemImage: "arrow.down.circle") }
+            PrivacySettings(part: .privacy).tabItem { Label("Privacy", systemImage: "hand.raised") }
+            PrivacySettings(part: .updates).tabItem { Label("Updates", systemImage: "arrow.triangle.2.circlepath") }
         }
-        .frame(width: 520)
-        .scenePadding()
+        .frame(width: 560, height: 520)
+    }
+}
+
+/// A System Settings–style row: a small coloured icon tile, a title and an optional hint, then the control.
+private struct SettingRow<Content: View>: View {
+    var icon: String, tint: Color, title: String, hint: String? = nil
+    @ViewBuilder var content: Content
+    var body: some View {
+        LabeledContent {
+            content
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
+                    .frame(width: 24, height: 24)
+                    .background(tint.gradient, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                    if let hint { Text(hint).font(.caption).foregroundStyle(.secondary) }
+                }
+            }
+        }
     }
 }
 
@@ -19,20 +41,37 @@ private struct GeneralSettings: View {
     var body: some View {
         @Bindable var model = model
         Form {
-            LabeledContent("Save to") {
-                HStack {
-                    Text(model.destination.path).lineLimit(1).truncationMode(.middle).foregroundStyle(.secondary)
+            Section {
+                HStack(spacing: 14) {
+                    Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 56, height: 56)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(AppIdentity.name).font(.title2.weight(.semibold))
+                        Text("Version \(AppModel.appVersion)").font(.callout).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(.vertical, 4)
+            }
+            Section("Saving") {
+                SettingRow(icon: "folder.fill", tint: .blue, title: "Save to", hint: model.destination.path) {
                     Button("Choose…") { model.chooseDestination() }
                 }
-            }
-            Picker("New links", selection: Binding(get: { DefaultChoice(model.defaultOptions) },
+                SettingRow(icon: "link", tint: .teal, title: "New links", hint: "What a pasted link is set to download") {
+                    Picker("", selection: Binding(get: { DefaultChoice(model.defaultOptions) },
                                                   set: { $0.apply(to: &model.defaultOptions) })) {
-                ForEach(DefaultChoice.allCases) { Text($0.title).tag($0) }
+                        ForEach(DefaultChoice.allCases) { Text($0.title).tag($0) }
+                    }
+                    .labelsHidden().fixedSize()
+                }
             }
-            Picker("Appearance", selection: $model.theme) {
-                ForEach(ThemeChoice.allCases) { Text($0.title).tag($0) }
+            Section("Look") {
+                SettingRow(icon: "circle.lefthalf.filled", tint: .indigo, title: "Appearance") {
+                    Picker("", selection: $model.theme) {
+                        ForEach(ThemeChoice.allCases) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.segmented).labelsHidden().fixedSize()
+                }
             }
-            .pickerStyle(.segmented)
         }
         .formStyle(.grouped)
     }
@@ -49,30 +88,48 @@ private struct TransferSettings: View {
     var body: some View {
         @Bindable var model = model
         Form {
-            Stepper("Simultaneous downloads: \(model.limits.downloads)", value: $model.limits.downloads, in: 1...6)
-            Stepper("Simultaneous conversions: \(model.limits.processing)", value: $model.limits.processing, in: 1...3)
-            Picker("Load full source for preview", selection: $autoLoad) {
-                Text("Never automatically (recommended)").tag(0.0)
-                Text("Videos up to 5 min").tag(5.0)
-                Text("Videos up to 10 min").tag(10.0)
-                Text("Videos up to 30 min").tag(30.0)
+            Section("At the same time") {
+                SettingRow(icon: "arrow.down", tint: .blue, title: "Downloads") {
+                    Stepper("\(model.limits.downloads)", value: $model.limits.downloads, in: 1...6).monospacedDigit()
+                }
+                SettingRow(icon: "gearshape.2.fill", tint: .orange, title: "Conversions") {
+                    Stepper("\(model.limits.processing)", value: $model.limits.processing, in: 1...3).monospacedDigit()
+                }
             }
-            .onChange(of: autoLoad) { _, v in Preferences.autoLoadSourceMinutes = v }
-            .help("Never on a hotspot, in Low Data Mode or when the disk is nearly full.")
-            Toggle("Use hardware encoder for MP4 conversion", isOn: $hardware)
-                .onChange(of: hardware) { _, v in Preferences.hardwareEncoding = v }
-                .help("Takes effect after relaunch. VideoToolbox is much faster for 4K; software x264 is slightly more efficient.")
-            Picker("Cache size", selection: $cacheLimit) {
-                Text("1 GB").tag(1); Text("2 GB").tag(2); Text("5 GB").tag(5); Text("10 GB").tag(10)
+            Section("Preview & conversion") {
+                SettingRow(icon: "play.rectangle.fill", tint: .pink, title: "Load full source for preview",
+                           hint: "Never on a hotspot, in Low Data Mode or when the disk is nearly full") {
+                    Picker("", selection: $autoLoad) {
+                        Text("Never (recommended)").tag(0.0)
+                        Text("Up to 5 min").tag(5.0)
+                        Text("Up to 10 min").tag(10.0)
+                        Text("Up to 30 min").tag(30.0)
+                    }
+                    .labelsHidden().fixedSize()
+                    .onChange(of: autoLoad) { _, v in Preferences.autoLoadSourceMinutes = v }
+                }
+                SettingRow(icon: "cpu", tint: .green, title: "Hardware encoder for MP4",
+                           hint: "Much faster for 4K. Takes effect after relaunch") {
+                    Toggle("", isOn: $hardware).labelsHidden().toggleStyle(.switch)
+                        .onChange(of: hardware) { _, v in Preferences.hardwareEncoding = v }
+                }
             }
-            .onChange(of: cacheLimit) { _, v in Preferences.cacheLimitGB = v; model.applyCachePolicy(); refresh() }
-            Picker("Delete unused copies after", selection: $cacheAge) {
-                Text("1 day").tag(1); Text("3 days").tag(3); Text("7 days").tag(7); Text("30 days").tag(30)
-            }
-            .onChange(of: cacheAge) { _, v in Preferences.cacheMaxAgeDays = v; model.applyCachePolicy(); refresh() }
-            LabeledContent("Cache in use") {
-                HStack {
-                    Text(ByteFormat.string(cacheSize)).foregroundStyle(.secondary)
+            Section {
+                SettingRow(icon: "internaldrive.fill", tint: .gray, title: "Cache size") {
+                    Picker("", selection: $cacheLimit) {
+                        Text("1 GB").tag(1); Text("2 GB").tag(2); Text("5 GB").tag(5); Text("10 GB").tag(10)
+                    }
+                    .labelsHidden().fixedSize()
+                    .onChange(of: cacheLimit) { _, v in Preferences.cacheLimitGB = v; model.applyCachePolicy(); refresh() }
+                }
+                SettingRow(icon: "clock.arrow.circlepath", tint: .gray, title: "Delete unused copies after") {
+                    Picker("", selection: $cacheAge) {
+                        Text("1 day").tag(1); Text("3 days").tag(3); Text("7 days").tag(7); Text("30 days").tag(30)
+                    }
+                    .labelsHidden().fixedSize()
+                    .onChange(of: cacheAge) { _, v in Preferences.cacheMaxAgeDays = v; model.applyCachePolicy(); refresh() }
+                }
+                SettingRow(icon: "trash.fill", tint: .red, title: "Cache in use", hint: ByteFormat.string(cacheSize)) {
                     Button("Clear Cache") {
                         model.worker?.sources.clearOwned()
                         CacheFolder.clear(model.paths.proxyCache)
@@ -80,9 +137,10 @@ private struct TransferSettings: View {
                     }
                     .disabled(cacheSize == 0)
                 }
+            } header: { Text("Cache") } footer: {
+                Text("Full-quality copies for exact frames and quick exports. A link’s copy goes when its item leaves the queue. Your saved files are never touched.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
-            Text("The cache holds full-quality copies for exact frames and quick exports, plus small previews for videos macOS can’t play. A link’s copy is deleted when its item leaves the queue, and replaced by your file once you download it. When less than 15 GB is free, the cache shrinks to 512 MB and sources aren’t loaded automatically. Your saved files are never touched.")
-                .font(.caption).foregroundStyle(.secondary)
         }
         .formStyle(.grouped)
         .onAppear(perform: refresh)
@@ -99,6 +157,8 @@ private struct TransferSettings: View {
 }
 
 private struct PrivacySettings: View {
+    enum Part { case privacy, updates }
+    var part: Part
     @Environment(AppModel.self) private var model
     @State private var latest: String?
     @State private var checking = false
@@ -110,10 +170,20 @@ private struct PrivacySettings: View {
 
     var body: some View {
         Form {
-            Section("Browser logins") {
-                Text("Off by default. You can enable a browser login per item (Output › Advanced) for content you’re allowed to view. Cookies are read locally at download time, never stored, logged or sent anywhere except the site itself. DLLC never asks for passwords.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Button("Forget Browser Logins on All Items") {
+            if part == .privacy { privacy } else { updates }
+        }
+        .formStyle(.grouped)
+        .onAppear(perform: refresh)
+    }
+
+    @ViewBuilder private var privacy: some View {
+        Section {
+            SettingRow(icon: "eye.slash.fill", tint: .blue, title: "No tracking", hint: "No analytics, no accounts. Links go only to the site itself") { EmptyView() }
+            SettingRow(icon: "doc.on.clipboard", tint: .teal, title: "Clipboard", hint: "Read only when you paste") { EmptyView() }
+        } header: { Text("What DLLC does") }
+        Section {
+            SettingRow(icon: "key.fill", tint: .orange, title: "Browser logins", hint: "Off unless you turn it on for an item") {
+                Button("Forget All") {
                     var busy = 0
                     for job in model.engine.jobs where job.cookies != .none {
                         if job.state.isActive { busy += 1 } else { model.engine.setCookies(job.id, .none) }
@@ -124,55 +194,68 @@ private struct PrivacySettings: View {
                         : "Browser logins removed, except \(busy) item\(busy == 1 ? "" : "s") still working. Cancel \(busy == 1 ? "it" : "them") or forget again when finished."
                 }
             }
-            Section("App updates") {
-                LabeledContent("This version", value: AppModel.appVersion)
-                Toggle("Check for updates automatically (once a day)", isOn: Binding(
-                    get: { Preferences.autoCheckAppUpdates }, set: { Preferences.autoCheckAppUpdates = $0; autoCheck = $0 }))
-                    .id(autoCheck)
+            if let message { Text(message).font(.caption) }
+        } header: { Text("Logins") } footer: {
+            Text("Enable a login per item (Output › Advanced) for content you’re allowed to view. Cookies are read locally at download time, never stored, logged or sent anywhere except the site itself. DLLC never asks for passwords.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private var updates: some View {
+        Section {
+            SettingRow(icon: "app.badge.fill", tint: .red, title: "DLLC \(AppModel.appVersion)",
+                       hint: model.appUpdate.map { "Version \($0.version) is ready" } ?? model.appUpdateStatus) {
                 HStack {
-                    Button(model.appUpdateBusy ? "Working…" : "Check Now") { model.checkForAppUpdate(manual: true) }
-                        .disabled(model.appUpdateBusy)
                     if let r = model.appUpdate {
-                        Button("Install \(r.version) and Restart") { model.installAppUpdate() }
-                            .disabled(model.appUpdateBusy)
                         Link("What’s new", destination: r.pageURL)
+                        Button("Install & Restart") { model.installAppUpdate() }
+                            .buttonStyle(.borderedProminent).disabled(model.appUpdateBusy)
+                    } else {
+                        Button(model.appUpdateBusy ? "Checking…" : "Check Now") { model.checkForAppUpdate(manual: true) }
+                            .disabled(model.appUpdateBusy)
                     }
                 }
-                if let s = model.appUpdateStatus { Text(s).font(.caption) }
-                Text("Updates come only from the DLLC releases on GitHub (\(AppUpdate.repository)) and must carry the developer’s signature before they’re installed. The check sends nothing about you or your downloads.")
-                    .font(.caption).foregroundStyle(.secondary)
             }
-            Section("yt-dlp (site support)") {
-                LabeledContent("Bundled", value: bundledVersion)
-                LabeledContent("In use", value: active ?? "Bundled")
+            SettingRow(icon: "clock.fill", tint: .gray, title: "Check automatically", hint: "Once a day") {
+                Toggle("", isOn: Binding(get: { Preferences.autoCheckAppUpdates },
+                                         set: { Preferences.autoCheckAppUpdates = $0; autoCheck = $0 }))
+                    .labelsHidden().toggleStyle(.switch).id(autoCheck)
+            }
+        } header: { Text("App") } footer: {
+            Text("Updates come only from DLLC’s GitHub releases (\(AppUpdate.repository)) and must carry the developer’s signature. The check sends nothing about you or your downloads.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        Section {
+            SettingRow(icon: "globe", tint: .blue, title: "yt-dlp \(active ?? bundledVersion)",
+                       hint: active == nil ? "Bundled version" : "Updated (bundled \(bundledVersion))") {
                 HStack {
-                    Button(checking ? "Checking…" : "Check for Update") { check() }.disabled(checking)
-                    if let latest, latest != (active ?? bundledVersion) {
-                        Button("Install \(latest)") { install(latest) }.disabled(checking)
-                    }
                     if active != nil {
-                        Button("Use Bundled Version") {
+                        Button("Use Bundled") {
                             try? YTDLPUpdateStore(paths: model.paths).setActive(nil)
                             refresh()
                             message = "Switched back to the bundled yt-dlp. Relaunch to apply."
                         }
                     }
-                }
-                Text("Updates download only from the official yt-dlp GitHub release. The release’s checksum list must carry a valid signature from yt-dlp’s signing key, and the download must match it, before anything runs. Updates are kept outside the app so you can roll back. Relaunch after updating.")
-                    .font(.caption).foregroundStyle(.secondary)
-                if let message { Text(message).font(.caption) }
-            }
-            Section("About") {
-                Text(versionsText).font(.caption.monospaced()).textSelection(.enabled)
-                Button("Show Licenses") {
-                    if let url = Bundle.main.url(forResource: "THIRD_PARTY_LICENSES", withExtension: "txt") {
-                        NSWorkspace.shared.open(url)
+                    if let latest, latest != (active ?? bundledVersion) {
+                        Button("Install \(latest)") { install(latest) }.buttonStyle(.borderedProminent).disabled(checking)
+                    } else {
+                        Button(checking ? "Checking…" : "Check") { check() }.disabled(checking)
                     }
                 }
             }
+            if let message { Text(message).font(.caption) }
+        } header: { Text("Site support") } footer: {
+            Text("Sites change often; updating yt-dlp fixes most “can’t download” errors. Updates come only from yt-dlp’s official GitHub release, signature-checked before anything runs. Relaunch after updating.")
+                .font(.caption).foregroundStyle(.secondary)
         }
-        .formStyle(.grouped)
-        .onAppear(perform: refresh)
+        Section("About") {
+            Text(versionsText).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+            Button("Show Licenses") {
+                if let url = Bundle.main.url(forResource: "THIRD_PARTY_LICENSES", withExtension: "txt") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+        }
     }
 
     private var versionsText: String {

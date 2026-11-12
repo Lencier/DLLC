@@ -223,14 +223,20 @@ public enum YTDLPCommand {
         if options.kind == .audio { return "ba/b" }
         switch options.quality {
         case .best: return "bv*+ba/b"
-        case let .option(_, _, _, ids):
+        case let .option(_, height, _, ids):
             // QualityChoice does not carry hasAudio; the /id fallback also handles muxed formats.
             let safe = ids.filter { !$0.isEmpty && $0.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || "_.-".contains($0)) } }
             guard !safe.isEmpty else { return "bv*+ba/b" }
             // HLS copies can hold packets without timestamps, which makes the merge fail ("Conversion failed"),
             // so a direct copy of the listed formats is tried first; HLS stays as the fallback for HLS-only sites.
             let direct = safe.map { "\($0)[protocol!*=m3u8]" }
-            return (direct + safe).flatMap { ["\($0)+ba", $0] }.joined(separator: "/")
+            // YouTube doesn't always offer the same formats twice: when none of the analysed IDs is there any
+            // more, take the closest at or below the chosen height rather than failing.
+            var tail = ["bv*+ba/b"]
+            if let height, height > 0 {
+                tail.insert("bv*[height<=\(height)][protocol!*=m3u8]+ba/bv*[height<=\(height)]+ba/b[height<=\(height)]", at: 0)
+            }
+            return ((direct + safe).flatMap { ["\($0)+ba", $0] } + tail).joined(separator: "/")
         }
     }
 }

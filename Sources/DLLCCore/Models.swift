@@ -169,6 +169,10 @@ public struct MediaInfo: Codable, Sendable, Hashable {
     public var youtubeClient: String?
     /// Files the post offers directly (Pinterest images, carousels, story pages), saved without yt-dlp.
     public var directItems: [DirectItem]?
+    /// Where the media really lives when the link was a pin pointing elsewhere; downloads use it.
+    public var resolvedURL: String?
+    /// A pin's outbound link (the page it was saved from), followed when the pin has no video of its own.
+    public var linkedURL: String?
     public var hasDirectItems: Bool { !(directItems ?? []).isEmpty }
 
     public init(id: String, title: String, creator: String?, platform: Platform, extractor: String?,

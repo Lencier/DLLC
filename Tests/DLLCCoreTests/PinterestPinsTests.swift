@@ -36,4 +36,13 @@ struct PinterestPinsTests {
         #expect(p.items[0].fileExtension == "png")
         #expect(p.title == "Pinterest pin 5")
     }
+
+    @Test func keepsTheOutboundLinkToFollow() throws {
+        let json = #"{"resource_response":{"data":{"title":"Reel","link":"https://www.instagram.com/reel/abc/","images":{"736x":{"url":"https://i.pinimg.com/736x/a/b.jpg"}}}}}"#
+        let p = try PinterestPins.parse(Data(json.utf8), id: "1")
+        #expect(p.link == "https://www.instagram.com/reel/abc/")
+        #expect(PinterestPins.outboundLink("https://i.pinimg.com/x.jpg") == nil)
+        #expect(PinterestPins.outboundLink("javascript:alert(1)") == nil)
+        #expect(PinterestPins.outboundLink(NSNull()) == nil)
+    }
 }

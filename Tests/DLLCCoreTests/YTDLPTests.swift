@@ -83,7 +83,7 @@ struct YTDLPTests {
         #expect(args.contains { $0.hasPrefix("/tmp/100%%/") })
         #expect(YTDLPCommand.formatSelector(options: options) == "bv*+ba/b")
         options.quality = .option(id: "chosen", height: 720, fps: 30, formatIDs: ["136", "247"])
-        #expect(YTDLPCommand.formatSelector(options: options) == "136[protocol!*=m3u8]+ba/136[protocol!*=m3u8]/247[protocol!*=m3u8]+ba/247[protocol!*=m3u8]/136+ba/136/247+ba/247")
+        #expect(YTDLPCommand.formatSelector(options: options) == "136[protocol!*=m3u8]+ba/136[protocol!*=m3u8]/247[protocol!*=m3u8]+ba/247[protocol!*=m3u8]/136+ba/136/247+ba/247/bv*[height<=720][protocol!*=m3u8]+ba/bv*[height<=720]+ba/b[height<=720]/bv*+ba/b")
         options.selectedEntries = [1, 3]
         options.kind = .audio
         let audio = YTDLPCommand.downloadArguments(url: "u", options: options, workDir: URL(fileURLWithPath: "/tmp"), tools: tools, cookies: .browser(name: "chrome", profile: "Default"), cookiesDirectory: nil)
